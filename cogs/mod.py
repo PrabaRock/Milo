@@ -9,7 +9,29 @@ class Mod(commands.Cog):
 	@commands.command()
 	async def kick(self, ctx, member : discord.Member, *, reason=None):
 		await member.kick(reason=reason)
-		await ctx.send(f"{member} has been kick out by {ctx.author}")
+		await ctx.send(f"{member} has been kick out by {ctx.author} for the reason {reason}")
+		
+	@commands.command()
+	async def ban(self, ctx, member : discord.Member, *, reason=None):
+		await memeber.ban(reason=reason)
+		await ctx.send(f"{member} has been banned successfully by {ctx.author}")
+		
+	@commands.command()
+	async def clear(self, ctx, amount : int):
+		await ctx.channel.purge(limit=amount)
+		await ctx.send(f"{amount} of messages has been deleted, the message was deleted by {ctx.author}")
+		
+	@commands.command()
+	async def unban(self, ctx, *, member):
+		banned_users = await ctx.guild.bans()
+		member_name, member_discriminator = member.split('#')
+		
+		for ban_entry in banned users:
+			users = ban_entry.users
+			
+			if(user.name, user.discriminator) == (member_name, member_discriminator):
+				await ctx.guild.unban(user)
+				await ctx.send(f"{user} has been unbanned by {ctx.author}")
 		
 def setup(client):
 	client.add_cog(Mod(client))
