@@ -12,7 +12,7 @@ class Main(commands.Cog):
 		
 	@commands.command()
 	async def ping(self, ctx):
-		await ctx.send("Pong!")
+		await ctx.send(f"Pong {round(self.latency * 1000)} ms")
 
 def setup(client):
 	client.add_cog(Main(client))
