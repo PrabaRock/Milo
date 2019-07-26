@@ -11,8 +11,8 @@ class Main(commands.Cog):
 		print("Bot is Online :)")
 		
 	@commands.command()
-	async def ping(self, ctx):
-		await ctx.send("Pong")
+	async def hello(self, ctx):
+		await ctx.send("Hi :wave:")
 		
 def setup(client):
 	client.add_cog(Main(client))
