@@ -1,27 +1,114 @@
 import discord
 from discord.ext import commands
 import os
+import datetime
+import json 
+import asyncio
+
+# Initial Extensions(cogs)
+initial_extensions = ['cogs.main',
+                                    'cogs.mod',
+                                    'cogs.owner']
+                                    
+# Loads the cogs here
+if __name__ == '__main__':
+	for extension in initial_extensions:
+		client.load_extension(extension)
 
 client = commands.Bot(command_prefix="*")
+client.remove_command('help')
+
+@client.event
+async def on_ready():
+	print('Logged in', client.user.name)
+	print('Version - 1.0.0')
+	print('Creator - PrabaRock7#3945')
+	print('Release Version - v01')
+	print('ᎷᎨᏝᎾ')
+	await client.change_presence(status=discord.Status.online, activity=discord.Game(name="*help | MiloBot™"))
+	
+
+
+@client.event
+async def on_member_join(member):
+	print(f"{member} has joined the server.")
+	
+@client.event
+async def on_member_remove(member):
+	print(f"{member} has left the server.")
 
 @client.command()
-async def load(ctx, extension):
-	client.load_extension(f"cogs.{extension}")
+async def help(ctx):
+	
+	embed = discord.Embed(title="List Of Commands", colour=discord.Colour(0xff0000))
+	
+	embed.set_thumbnail(url="https://i.imgur.com/cUrQeXr.png")
+	embed.set_footer(text=f"Command Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+	
+	embed.add_field(name="**Fun**", value="*hello, *ping")
+	embed.add_field(name="**Bot Related Commands**", value="*botinfo, *botsource,  *botsupportserver")
+	embed.add_field(name="**Mathematics**", value="*square, *bitcoin")
+	embed.add_field(name="**Moderation**", value="*clear, *kick, *ban, *unban, *avatar, *useravatar")
+	await ctx.send(embed=embed)
 	
 @client.command()
-async def unload(ctx, extension):
-	client.unload_extension(f"cogs.{extension}")
+async def hello(ctx):
+	await ctx.send("Hello!" + ", " + ctx.message.author.mention)
 	
-for filename in os.listdir('./cogs'):
-	if filename.endswith('.py'):
-		client.load_extension(f"cogs.{filename[:-3]}")
-
 @client.command()
 async def ping(ctx):
 	
-	embed = discord.Embed(color=discord.Color.blue(), title=f"Pong :ping_pong: {ctx.author}", description=f"{round(client.latency * 1000)} ms")
+	embed = discord.Embed(colour=discord.Colour(0x00ff00), timestamp=ctx.message.created_at)
+	embed.set_author(name="Ping")
+	embed.add_field(name=f"*Pong*", value=f"**:ping_pong: {round(client.latency * 1000)}ms**")
+	embed.set_footer(text=f"Req By {ctx.author}", icon_url=ctx.author.avatar_url)
 	await ctx.send(embed=embed)
+
+
 	
+@client.command()
+async def clear(ctx, amount : int):
+	await ctx.channel.purge(limit=amount)
+	
+@clear.error
+async def clear_error(ctx, error):
+	if isinstance(error, commands.MissingRequiredArgument):
+		await ctx.send(f"Please Specify **number of messages** to *delete* {ctx.author.mention}")
+	
+@client.command()
+async def kick(ctx, member : discord.Member, *, reason=None):
+	await member.kick(reason=reason)
+	
+@kick.error
+async def kick_error(ctx, error):
+	if isinstance(error, commands.MissingRequiredArgument):
+		await ctx.send(f"Please Specify a **member** to *kick* {ctx.author.mention}")
+	
+@client.command()
+async def ban(ctx, member : discord.Member, *, reason=None):
+	await member.ban(reason=reason)
+	
+@ban.error
+async def ban_error(ctx, error):
+	if isinstance(error, commands.MissingRequiredArgument):
+		await ctx.send(f"Please Specify a **member** to *ban* {ctx.author.mention}")
+	
+@client.command()
+async def unban(ctx, *, member):
+	banned_users = await ctx.guild.bans()
+	member_name, member_discriminator = member.split('#')
+	
+	for ban_entry in banned_users:
+		user = ban_entry.user
+		
+		if (user.name, user.discriminator) == (member_name, member_discriminator):
+			await ctx.guild.unban(user)
+			
+@unban.error
+async def unban_error(ctx, error):
+	if isinstance(error, commands.MissingRequiredArgument):
+		await ctx.send(f"Please Specify a **member** to *unban* {ctx.author.mention}")
+			
 @client.command()
 async def botinfo(ctx):
 	
@@ -38,5 +125,46 @@ async def botsupportserver(ctx):
 	embed = discord.Embed(title="Support server")
 	embed.add_field(name="Server Link", value="Touch the below link to join the server")
 	await ctx.send(content="https://discord.gg/FeD6RUs", embed=embed)
-		
-client.run(os.getenv("TOKEN"))
+	
+@client.command()
+async def avatar(ctx):
+	show_avatar = discord.Embed(
+	
+	         color = discord.Color.blue()
+	)
+	show_avatar.set_image(url="{}".format(ctx.author.avatar_url))
+	await ctx.send(embed=show_avatar)
+	
+@client.command()
+async def useravatar(ctx, member : discord.Member):
+	show_avatar = discord.Embed(
+	
+	         color = discord.Color.dark_blue()
+	)
+	show_avatar.set_image(url="{}".format(member.avatar_url))
+	await ctx.send(embed=show_avatar)
+	
+@useravatar.error
+async def useravatar_error(ctx, error):
+	if isinstance(error, commands.MissingRequiredArgument):
+		await ctx.send(f"Please specify a **member** to show his/her *avatar* {ctx.author.mention}")
+
+@client.command()
+async def botsource(ctx):
+	await ctx.send("https://github.com/PrabaRock/Milo-Bot")
+	
+@client.command()
+async def square(number):
+    squared_value = int(number) * int(number)
+    await client.say(str(number) + " squared is " + str(squared_value))
+
+@client.command()
+async def bitcoin():
+    url = 'https://api.coindesk.com/v1/bpi/currentprice/BTC.json'
+    async with aiohttp.ClientSession() as session:  # Async HTTP request
+        raw_response = await session.get(url)
+        response = await raw_response.text()
+        response = json.loads(response)
+        await client.say("Bitcoin price is: $" + response['bpi']['USD']['rate'])
+
+client.run(os.getenv('TOKEN'))
