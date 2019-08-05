@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord import Bot
 import os
 import datetime
 import json 
